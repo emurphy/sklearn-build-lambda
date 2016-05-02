@@ -21,7 +21,7 @@ make_swap () {
 
 do_pip () {
     pip install --upgrade pip wheel
-    IFS=' ' ; for pkg in numpy scipy scikit-learn; do
+    IFS=' ' ; for pkg in numpy sklearn pandas xgboost numexpr; do
         pip install --use-wheel $pkg
     done
 }
@@ -53,7 +53,7 @@ shared_libs () {
 }
 
 main () {
-    make_swap
+    #make_swap
 
     /usr/bin/virtualenv \
         --python /usr/bin/python sklearn_build \
@@ -70,6 +70,6 @@ main () {
     # done with the venv
     deactivate
 
-    upload
+    #upload
 }
 main
