@@ -28,17 +28,24 @@ do_pip () {
 
 strip_virtualenv () {
     echo "venv original size $(du -sh $VIRTUAL_ENV | cut -f1)"
-    find $VIRTUAL_ENV/lib64/python2.7/site-packages/ -name "*.so" -print |  xargs strip || true
+    find $VIRTUAL_ENV -name "*.so*" -print |  xargs strip || true
     echo "venv stripped size $(du -sh $VIRTUAL_ENV | cut -f1)"
     # numpy, scipy, and sklearn have duplicate copies of a couple of shared libraries. make them share
     NUMPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/numpy/.libs
     SCIPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/scipy/.libs
     SKLEARN_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/sklearn/.libs
     rm -f $NUMPY_LIBDIR/lib*
-    (cd $NUMPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
+    (cd $NUMPY_LIBDIR; ln -s ../../sklearn/.libs/libgfortran-ed201abd.so.3.0.0  .;  ln -s ../../sklearn/.libs/libopenblasp-r0-39a31c03.2.18.so .)
     rm -f $SCIPY_LIBDIR/lib*
-    (cd $SCIPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
-    # save a little more space by removing source where we have a .pyc
+    (cd $SCIPY_LIBDIR; ln -s ../../sklearn/.libs/libgfortran-ed201abd.so.3.0.0  .;  ln -s ../../sklearn/.libs/libopenblasp-r0-39a31c03.2.18.so .)
+    # and space by removing tests etc.
+    find $VIRTUAL_ENV -type d -name tests -print | xargs rm -rf
+    find $VIRTUAL_ENV -type d -name test -print | xargs rm -rf
+    find $VIRTUAL_ENV -type d -name src -print | xargs rm -rf
+    find $VIRTUAL_ENV -type d -name doc -print | xargs rm -rf
+    find $VIRTUAL_ENV -type d -name include -print | xargs rm -rf
+    find $VIRTUAL_ENV -type f -name "*.o" -print | xargs rm -f
+    # a little more space by removing source where we have a .pyc
     find $VIRTUAL_ENV  -name "*.pyc" -print |  sed s/.pyc$/.py/ | xargs rm -f
     echo "venv consolidated & source removed size $(du -sh $VIRTUAL_ENV | cut -f1)"
 
@@ -58,9 +65,12 @@ upload () {
 shared_libs () {
     libdir="$VIRTUAL_ENV/lib64/python2.7/site-packages/lib/"
     mkdir -p $VIRTUAL_ENV/lib64/python2.7/site-packages/lib || true
-    cp /usr/lib64/atlas/* $libdir
+    cd /usr/lib64/atlas
+    tar cvf - . | (cd $libdir; tar xvf -)
     cp /usr/lib64/libquadmath.so.0 $libdir
     cp /usr/lib64/libgfortran.so.3 $libdir
+    cd $libdir
+    strip *
 }
 
 main () {
