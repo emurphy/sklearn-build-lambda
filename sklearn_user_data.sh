@@ -31,13 +31,13 @@ strip_virtualenv () {
     find $VIRTUAL_ENV/lib64/python2.7/site-packages/ -name "*.so" -print |  xargs strip || true
     echo "venv stripped size $(du -sh $VIRTUAL_ENV | cut -f1)"
     # numpy, scipy, and sklearn have duplicate copies of a couple of shared libraries. make them share
-    NUMPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/numpy/.libs
-    SCIPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/scipy/.libs
-    SKLEARN_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/sklearn/.libs
-    rm -f $NUMPY_LIBDIR/lib*
-    (cd $NUMPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
-    rm -f $SCIPY_LIBDIR/lib*
-    (cd $SCIPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
+    #NUMPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/numpy/.libs
+    #SCIPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/scipy/.libs
+    #SKLEARN_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/sklearn/.libs
+    #rm -f $NUMPY_LIBDIR/lib*
+    #(cd $NUMPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
+    #rm -f $SCIPY_LIBDIR/lib*
+    #(cd $SCIPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
     # save a little more space by removing source where we have a .pyc
     find $VIRTUAL_ENV  -name "*.pyc" -print |  sed s/.pyc$/.py/ | xargs rm -f
     echo "venv consolidated & source removed size $(du -sh $VIRTUAL_ENV | cut -f1)"
