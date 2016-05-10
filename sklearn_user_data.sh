@@ -34,9 +34,9 @@ strip_virtualenv () {
     SCIPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/scipy/.libs
     SKLEARN_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/sklearn/.libs
     rm -f $NUMPY_LIBDIR/lib*
-    ln -s $SKLEARN_LIBDIR/lib* $NUMPY_LIBDIR
+    (cd $NUMPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
     rm -f $SCIPY_LIBDIR/lib*
-    ln -s $SKLEARN_LIBDIR/lib* $SCIPY_LIBDIR
+    (cd $SCIPY_LIBDIR; ln -s ../sklearn/.libs/lib* .)
     # save a little more space by removing source where we have a .pyc
     find $VIRTUAL_ENV  -name "*.pyc" -print |  sed s/.pyc$/.py/ | xargs rm -f
     echo "venv stripped size $(du -sh $VIRTUAL_ENV | cut -f1)"
