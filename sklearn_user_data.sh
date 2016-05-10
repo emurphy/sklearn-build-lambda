@@ -28,11 +28,22 @@ do_pip () {
 
 strip_virtualenv () {
     echo "venv original size $(du -sh $VIRTUAL_ENV | cut -f1)"
-    find $VIRTUAL_ENV/lib64/python2.7/site-packages/ -name "*.so" | xargs strip
-    echo "venv stripped size $(du -sh $VIRTUAL_ENV | cut -f1)"
-
+    find $VIRTUAL_ENV/lib64/python2.7/site-packages/ -name "*.so" -print |  xargs strip || true
     pushd $VIRTUAL_ENV/lib64/python2.7/site-packages/ && zip -r -9 -q ~/venv.zip * ; popd
+    echo "venv stripped size $(du -sh $VIRTUAL_ENV | cut -f1)"
     echo "site-packages compressed size $(du -sh ~/venv.zip | cut -f1)"
+
+    # numpy, scipy, and sklearn have duplicate copies of a couple of shared libraries. make them share
+    NUMPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/numpy/.libs
+    SCIPY_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/scipy/.libs
+    SKLEARN_LIBDIR=$VIRTUAL_ENV/lib64/python2.7/site-packages/sklearn/.libs
+    rm -f $NUMPY_LIBDIR/lib*
+    ln -s $SKLEARN_LIBDIR/lib* $NUMPY_LIBDIR
+    rm -f $SCIPY_LIBDIR/lib*
+    ln -s $SKLEARN_LIBDIR/lib* $SCIPY_LIBDIR
+    # save a little more space by removing source where we have a .pyc
+    find $VIRTUAL_ENV  -name "*.pyc" -print |  sed s/.pyc$/.py/ | xargs rm
+    echo "venv consolidated & source removed size $(du -sh $VIRTUAL_ENV | cut -f1)"
 
     pushd $VIRTUAL_ENV && zip -r -q ~/full-venv.zip * ; popd
     echo "venv compressed size $(du -sh ~/full-venv.zip | cut -f1)"
